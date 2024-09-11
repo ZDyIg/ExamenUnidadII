@@ -13,6 +13,7 @@
     <script type="text/javascript">
         const DOC = document.getElementById("canvas");
         const context = DOC.getContext("2d");
+        let selectRect = null;
 
 
         function getRandomColor() {
@@ -27,23 +28,47 @@
 
         let rectangles = [];
 
-        for (let i =0; i<5;i++){
+        for (let i = 0; i < 5; i++) {
             rectangles.push({
-                x:Math.random() * canvas.width,
-                y:Math.random() * canvas.height,
+                x: Math.random() * (canvas.width - 70),
+                y: Math.random() * (canvas.height - 40),
 
-                width:70,
-                height:40,
-                color: getRandomColor()
+                width: 70,
+                height: 40,
+                color: getRandomColor(),
+                //velocidades
+                speedX: 5,
+                speedY: 5,
             });
         }
 
-        function drawRectangles(){
+        function drawRectangles() {
+            console.log();
+            context.clearRect(0, 0, canvas.width, canvas.height);
             rectangles.forEach(rect => {
                 context.fillStyle = rect.color;
                 context.fillRect(rect.x, rect.y, rect.width, rect.height);
             });
         }
+
+        canvas.addEventListenner('click', function(event) {
+            const mouseX = event.offsetX;
+            const mouseY = event.offsetY;
+
+            selectRect = null;
+            rectangles.forEach (rect =>{
+                if(
+                    mouseX >= rect.x && mouseX <= rect.x + rect.width &&
+                    mouseY >= rect.y && mouseY <= rect.y + rect.height
+                ){
+                    selectRect = rect;
+                }
+            });
+
+        });
+
+        //MOVER CON TECLAS
+       
 
         drawRectangles();
 
@@ -52,6 +77,8 @@
         // const numCars = 10;
         // let x = 100;
         // let y = 100;
+
+
 
 
         // function getRandomColor() {
