@@ -90,6 +90,11 @@
         //MOVER CON TECLAS
         document.addEventListener('keydown', function (event) {
             if (selectRect) {
+                let originalX = selectRect.x;
+                let originalY = selectRect.y;
+
+                let colidedX = false;
+                let colidedY = false;
                 switch (event.key) {
                     case 'ArrowRight':
                         selectRect.x += selectRect.speedX;
@@ -107,16 +112,28 @@
                         break;
                 }
 
-                let colided =false;
                 rectangles.forEach(rect => {
-                    if(rect!== selectRect && isColliding(selectRect,rect)){
-                        colided = true;
+                    if (rect !== selectRect) {
+
+                        if (isColliding(selectRect, rect)) {
+                            if (selectRect.x !== originalX) {
+                                colidedX = true;
+                            }
+                            if (selectRect.y !== originalY) {
+                                colidedY = true;
+                            }
+
+                        }
+
                     }
-                    
+
                 });
 
-                if(colided){
+                if (colidedX) {
                     selectRect.x = originalX;
+                }
+
+                if(colidedY){
                     selectRect.y = originalY;
                 }
 
