@@ -58,6 +58,24 @@
 
             });
         }
+        //choque de carros
+        // function colision(rect) {
+        //     for (let otherRect of rectangles) {
+        //         if (rect !== otherRect) {
+        //             if (
+        //                 rect.x < otherRect.x + otherRect.width &&
+        //                 rect.x + rect.width > otherRect.x &&
+        //                 rect.y < otherRect.y + otherRect.height &&
+        //                 rect.y + rect.height > otherRect.y
+        //             ){
+        //                 return true;
+        //             }
+        //         }
+        //     }
+
+        //     return false;
+        // }
+
 
         canvas.addEventListener('click', function (event) {
             console.log();
@@ -107,8 +125,29 @@
                     default:
                         break;
                 }
+
                 drawRectangles();
+
+                // const newX = selectRect.x + moveX;
+                // const newY = selectRect.y + move.y;
+
+                // const tempRect ={
+                //     x:newX,
+                //     y:newY,
+                //     width: selectRect.width,
+                //     height:selectRect.height
+                      
+                // };
+                
+                // if(!colision(tempRect)){
+                //     selectRect.x=newX;
+                //     selectRect.y =newY;
+                // }
+
+                // drawRectangles();
             }
+
+            // drawRectangles();
         });
 
 
@@ -242,6 +281,7 @@
             height: 100vh;
             margin: 0;
         }
+
         canvas {
             background-color: #ffffff;
             border: 5px solid #333;
