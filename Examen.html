@@ -48,27 +48,78 @@
             rectangles.forEach(rect => {
                 context.fillStyle = rect.color;
                 context.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+                //borde negro para selecciòn
+                if (rect === selectRect) {
+                    context.strokeStyle = 'black';
+                    context.lineWidth = 6;
+                    context.stokeRect(rect.x, rect.y, rect.width, rect.height); F
+                }
+
             });
         }
 
-        canvas.addEventListenner('click', function(event) {
+        canvas.addEventListener('click', function (event) {
+            console.log();
             const mouseX = event.offsetX;
             const mouseY = event.offsetY;
 
             selectRect = null;
-            rectangles.forEach (rect =>{
-                if(
-                    mouseX >= rect.x && mouseX <= rect.x + rect.width &&
-                    mouseY >= rect.y && mouseY <= rect.y + rect.height
-                ){
+            rectangles.forEach(rect => {
+                if (
+                    mouseX >= rect.x &&
+                    mouseX <= rect.x + rect.width &&
+                    mouseY >= rect.y &&
+                    mouseY <= rect.y + rect.height
+                ) {
                     selectRect = rect;
                 }
             });
 
+            drawRectangles();
+
         });
 
         //MOVER CON TECLAS
-       
+        document.addEventListener('keydown', function (event) {
+            if (selectRect) {
+                switch (event.key) {
+                    case 'ArrowRight':
+                        if (selectRect.x + selectRect.width + selectRect.speedX <= canvas.width) {
+                            selectRect.x += selectRect.speedX;
+                        }
+                        break;
+                    case 'ArrowLeft':
+                        if (selectRect.x - selectRect.speedX >= 0) {
+                            selectRect.x -= selectRect.speedX;
+                        }
+                        break;
+                    case 'ArrowUp':
+                        if (selectRect.y - selectRect.speedY >= 0) {
+                            selectRect.y -= selectRect.speedY;
+                        }
+                        break;
+                    case 'ArrowDown':
+                        if (selectRect.y + selectRect.height + selectRect.speedY <= canvas.height) {
+                            selectRect.y += selectRect.speedY;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                drawRectangles();
+            }
+        });
+
+
+        // document.addEventListener('keydown', function(event){
+        //     if(selectRect){
+        //         if(event.key === 'ArrowRight'){
+        //             selectRect.x += selectRect.speedX;
+        //         }
+        //     }
+        // })
+
 
         drawRectangles();
 
