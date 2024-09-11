@@ -53,29 +53,11 @@
                 if (rect === selectRect) {
                     context.strokeStyle = 'black';
                     context.lineWidth = 6;
-                    context.stokeRect(rect.x, rect.y, rect.width, rect.height); F
+                    context.stokeRect(rect.x, rect.y, rect.width, rect.height);
                 }
 
             });
         }
-        //choque de carros
-        // function colision(rect) {
-        //     for (let otherRect of rectangles) {
-        //         if (rect !== otherRect) {
-        //             if (
-        //                 rect.x < otherRect.x + otherRect.width &&
-        //                 rect.x + rect.width > otherRect.x &&
-        //                 rect.y < otherRect.y + otherRect.height &&
-        //                 rect.y + rect.height > otherRect.y
-        //             ){
-        //                 return true;
-        //             }
-        //         }
-        //     }
-
-        //     return false;
-        // }
-
 
         canvas.addEventListener('click', function (event) {
             console.log();
@@ -98,66 +80,52 @@
 
         });
 
+        function isColliding(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y;
+        }
+
         //MOVER CON TECLAS
         document.addEventListener('keydown', function (event) {
             if (selectRect) {
                 switch (event.key) {
                     case 'ArrowRight':
-                        if (selectRect.x + selectRect.width + selectRect.speedX <= canvas.width) {
-                            selectRect.x += selectRect.speedX;
-                        }
+                        selectRect.x += selectRect.speedX;
                         break;
                     case 'ArrowLeft':
-                        if (selectRect.x - selectRect.speedX >= 0) {
-                            selectRect.x -= selectRect.speedX;
-                        }
+                        selectRect.x -= selectRect.speedX;
                         break;
                     case 'ArrowUp':
-                        if (selectRect.y - selectRect.speedY >= 0) {
-                            selectRect.y -= selectRect.speedY;
-                        }
+                        selectRect.y -= selectRect.speedY;
                         break;
                     case 'ArrowDown':
-                        if (selectRect.y + selectRect.height + selectRect.speedY <= canvas.height) {
-                            selectRect.y += selectRect.speedY;
-                        }
+                        selectRect.y += selectRect.speedY;
                         break;
                     default:
                         break;
                 }
 
+                let colided =false;
+                rectangles.forEach(rect => {
+                    if(rect!== selectRect && isColliding(selectRect,rect)){
+                        colided = true;
+                    }
+                    
+                });
+
+                if(colided){
+                    selectRect.x = originalX;
+                    selectRect.y = originalY;
+                }
+
                 drawRectangles();
-
-                // const newX = selectRect.x + moveX;
-                // const newY = selectRect.y + move.y;
-
-                // const tempRect ={
-                //     x:newX,
-                //     y:newY,
-                //     width: selectRect.width,
-                //     height:selectRect.height
-                      
-                // };
-                
-                // if(!colision(tempRect)){
-                //     selectRect.x=newX;
-                //     selectRect.y =newY;
-                // }
-
-                // drawRectangles();
             }
 
-            // drawRectangles();
+
         });
 
-
-        // document.addEventListener('keydown', function(event){
-        //     if(selectRect){
-        //         if(event.key === 'ArrowRight'){
-        //             selectRect.x += selectRect.speedX;
-        //         }
-        //     }
-        // })
 
 
         drawRectangles();
