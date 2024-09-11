@@ -108,6 +108,11 @@
                     case 'ArrowDown':
                         selectRect.y += selectRect.speedY;
                         break;
+                    case ' ':
+                        const temp = selectRect.width;
+                        selectRect.width = selectRect.height;
+                        selectRect.height = temp;
+                        break;
                     default:
                         break;
                 }
