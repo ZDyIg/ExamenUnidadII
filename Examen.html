@@ -8,12 +8,31 @@
 </head>
 
 <body>
-
     <canvas id="canvas" width="800" height="800"> </canvas>
     <script type="text/javascript">
-        const DOC = document.getElementById("canvas");
-        const context = DOC.getContext("2d");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+
+        // Definir sellSize (estacionamiento)
+        const sellSize = {
+            x: 200,
+            y: 200,
+            width: 400,
+            height: 400
+        };
+
+        // Definir salida fuera del área de estacionamiento
+        const exit = {
+            x: 750, // Posición de la salida en X
+            y: 350, // Posición de la salida en Y
+            width: 50,
+            height: 100
+        };
+
+        // RECTANGULOS 
+        let rectangles = [];
         let selectRect = null;
+        let movingToExit = null; // Rectángulo que está en proceso de moverse hacia la salida
 
         function getRandomColor() {
             var trans = '0.5'; // 50% transparency
@@ -25,47 +44,86 @@
             return color;
         }
 
-
-
-        //RECTANGULOS 
-        let rectangles = [];
+        function createRectangles() {
+            let rect;
+            let overlapping;
+            let attempts = 0;
+            do {
+                rect = {
+                    x: Math.random() * (sellSize.width - 70) + sellSize.x,
+                    y: Math.random() * (sellSize.height - 40) + sellSize.y,
+                    width: Math.random() > 0.5 ? 70 : 40,
+                    height: Math.random() > 0.5 ? 40 : 70,
+                    color: getRandomColor(),
+                    speedX: 5,
+                    speedY: 5,
+                    isHorizontal: Math.random() > 0.5,
+                    isExiting: false // Si está en proceso de salir
+                };
+                overlapping = rectangles.some(otherRect => isColliding(rect, otherRect));
+                attempts++;
+                if (attempts > 100) break;
+            } while (overlapping);
+            return rect;
+        }
 
         for (let i = 0; i < 5; i++) {
-            rectangles.push({
-                x: Math.random() * (canvas.width - 70),
-                y: Math.random() * (canvas.height - 40),
+            rectangles.push(createRectangles());
+        }
 
-                width: 70,
-                height: 40,
-                color: getRandomColor(),
-                //velocidades
-                speedX: 5,
-                speedY: 5,
-            });
+        function drawParkingLot() {
+            context.strokeStyle = "black";
+            context.lineWidth = 3;
+            context.strokeRect(sellSize.x, sellSize.y, sellSize.width, sellSize.height);
+        }
+
+        function drawExit() {
+            context.fillStyle = 'red';
+            context.fillRect(exit.x, exit.y, exit.width, exit.height);
         }
 
         function drawRectangles() {
-            console.log();
             context.clearRect(0, 0, canvas.width, canvas.height);
+            drawParkingLot();
+            drawExit();
             rectangles.forEach(rect => {
-                // if (rect.x >= sellSize.x &&
-                //     rect.x + rect.width <= sellSize.x + sellSize.width &&
-                //     rect.y >= sellSize.y &&
-                //     rect.y + rect.height <= sellSize.y + sellSize.height
-                // ) {
-                    context.fillStyle = rect.color;
-                    context.fillRect(rect.x, rect.y, rect.width, rect.height);
-                    //borde negro para selecciòn
-                    if (rect === selectRect) {
-                        context.strokeStyle = 'black';
-                        context.lineWidth = 6;
-                        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
-                    }
+                context.fillStyle = rect.color;
+                context.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+                if (rect === selectRect) {
+                    context.strokeStyle = 'black';
+                    context.lineWidth = 6;
+                    context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                }
             });
         }
 
+        function moveToExit(rect) {
+            const speed = 2; // Velocidad a la que se moverá el rectángulo hacia la salida
+            if (rect.x < exit.x) {
+                rect.x += speed;
+            }
+            if (rect.y < exit.y) {
+                rect.y += speed;
+            } else if (rect.y > exit.y + exit.height - rect.height) {
+                rect.y -= speed;
+            }
+            drawRectangles();
+        }
+
+        function animate() {
+            if (movingToExit) {
+                moveToExit(movingToExit);
+                if (movingToExit.x >= exit.x && movingToExit.y >= exit.y && movingToExit.y + movingToExit.height <= exit.y + exit.height) {
+                    alert("¡El auto ha salido del estacionamiento!");
+                    rectangles = rectangles.filter(rect => rect !== movingToExit);
+                    movingToExit = null; // Detener animación una vez que sale
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
         canvas.addEventListener('click', function (event) {
-            console.log();
             const mouseX = event.offsetX;
             const mouseY = event.offsetY;
 
@@ -82,7 +140,6 @@
             });
 
             drawRectangles();
-
         });
 
         function isColliding(rect1, rect2) {
@@ -92,26 +149,33 @@
                 rect1.y + rect1.height > rect2.y;
         }
 
-        //MOVER CON TECLAS
+        function isExitZone(rect) {
+            return rect.x + rect.width >= exit.x &&
+                rect.y >= exit.y &&
+                rect.y + rect.height <= exit.y + exit.height;
+        }
+
+        // MOVER CON TECLAS
         document.addEventListener('keydown', function (event) {
-            if (selectRect) {
+            if (selectRect && !selectRect.isExiting) {
                 let originalX = selectRect.x;
                 let originalY = selectRect.y;
 
-                let colidedX = false;
-                let colidedY = false;
+                let collidedX = false;
+                let collidedY = false;
+
                 switch (event.key) {
                     case 'ArrowRight':
-                        selectRect.x += selectRect.speedX;
+                        if (selectRect.isHorizontal) selectRect.x += selectRect.speedX;
                         break;
                     case 'ArrowLeft':
-                        selectRect.x -= selectRect.speedX;
+                        if (selectRect.isHorizontal) selectRect.x -= selectRect.speedX;
                         break;
                     case 'ArrowUp':
-                        selectRect.y -= selectRect.speedY;
+                        if (!selectRect.isHorizontal) selectRect.y -= selectRect.speedY;
                         break;
                     case 'ArrowDown':
-                        selectRect.y += selectRect.speedY;
+                        if (!selectRect.isHorizontal) selectRect.y += selectRect.speedY;
                         break;
                     case ' ':
                         const temp = selectRect.width;
@@ -124,44 +188,27 @@
 
                 rectangles.forEach(rect => {
                     if (rect !== selectRect) {
-
                         if (isColliding(selectRect, rect)) {
-                            if (selectRect.x !== originalX) {
-                                colidedX = true;
-                            }
-                            if (selectRect.y !== originalY) {
-                                colidedY = true;
-                            }
-
+                            collidedX = selectRect.x !== originalX;
+                            collidedY = selectRect.y !== originalY;
                         }
-
                     }
-
                 });
 
-                if (colidedX) {
-                    selectRect.x = originalX;
-                }
+                if (collidedX) selectRect.x = originalX;
+                if (collidedY) selectRect.y = originalY;
 
-                if (colidedY) {
-                    selectRect.y = originalY;
+                if (selectRect.x + selectRect.width > sellSize.x + sellSize.width || selectRect.y + selectRect.height > sellSize.y + sellSize.height) {
+                    selectRect.isExiting = true;
+                    movingToExit = selectRect; // Inicia el movimiento hacia la salida
                 }
 
                 drawRectangles();
             }
-
-
         });
 
-
-
+        animate();
         drawRectangles();
-
-
-
-
-
-
     </script>
 
 
