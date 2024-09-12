@@ -15,7 +15,6 @@
         const context = DOC.getContext("2d");
         let selectRect = null;
 
-
         function getRandomColor() {
             var trans = '0.5'; // 50% transparency
             var color = 'rgba(';
@@ -26,6 +25,20 @@
             return color;
         }
 
+
+        // const sellSize = {
+        //     x: 100,
+        //     y: 100,
+        //     width: 400,
+        //     height: 400,
+        //     exitX: 350,
+        //     exitY: 500,
+        //     exitWidth: 50,
+        //     exitHeight: 50
+
+        // };
+
+        //RECTANGULOS 
         let rectangles = [];
 
         for (let i = 0; i < 5; i++) {
@@ -42,22 +55,41 @@
             });
         }
 
+        // function drawParking() {
+        //     context.strokeStyle = "black";
+        //     context.lineWidth = 3;
+        //     context.strokeRect(sellSize.x, sellSize.y, sellSize.width, sellSize.height);
+
+        //     context.clearRect(sellSize.exitX, sellSize.exitY, sellSize.exitWidth, sellSize.exitHeight);
+        //     context.strokeStyle = "red"; // Para mostrar el borde de la salida
+        //     context.strokeRect(sellSize.exitX, sellSize.exitY, sellSize.exitWidth, sellSize.exitHeight);
+        // }
+
         function drawRectangles() {
             console.log();
             context.clearRect(0, 0, canvas.width, canvas.height);
             rectangles.forEach(rect => {
-                context.fillStyle = rect.color;
-                context.fillRect(rect.x, rect.y, rect.width, rect.height);
-
-                //borde negro para selecciòn
-                if (rect === selectRect) {
-                    context.strokeStyle = 'black';
-                    context.lineWidth = 6;
-                    context.stokeRect(rect.x, rect.y, rect.width, rect.height);
-                }
-
+                // if (rect.x >= sellSize.x &&
+                //     rect.x + rect.width <= sellSize.x + sellSize.width &&
+                //     rect.y >= sellSize.y &&
+                //     rect.y + rect.height <= sellSize.y + sellSize.height
+                // ) {
+                    context.fillStyle = rect.color;
+                    context.fillRect(rect.x, rect.y, rect.width, rect.height);
+                    //borde negro para selecciòn
+                    if (rect === selectRect) {
+                        context.strokeStyle = 'black';
+                        context.lineWidth = 6;
+                        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                    }
             });
         }
+
+        // function drawScenery() {
+        //     context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar canvas
+        //     drawParking(); // Dibuja el estacionamiento
+        //     drawRectangles(); // Dibuja los rectángulos
+        // }
 
         canvas.addEventListener('click', function (event) {
             console.log();
@@ -138,7 +170,7 @@
                     selectRect.x = originalX;
                 }
 
-                if(colidedY){
+                if (colidedY) {
                     selectRect.y = originalY;
                 }
 
@@ -153,108 +185,7 @@
         drawRectangles();
 
 
-        // const sellSize = 100;
-        // const numCars = 10;
-        // let x = 100;
-        // let y = 100;
 
-
-
-
-        // function getRandomColor() {
-        //     var trans = '0.5'; // 50% transparency
-        //     var color = 'rgba(';
-        //     for (var i = 0; i < 3; i++) {
-        //         color += Math.floor(Math.random() * 255) + ',';
-        //     }
-        //     color += trans + ')'; // add the transparency
-        //     return color;
-        // }
-
-        // function getRandomColor() {
-        //     return 'rgba(255, 0, 0, 0.5)'; // Color rojo semitransparente
-        // }
-
-        // class Cars {
-        //     constructor(width, height, x, y, direction, isExitCar = false) {
-        //         this.color = this.getRandomColor();
-        //         this.width = width;
-        //         this.height = height;
-        //         this.x = x;
-        //         this.y = y;
-        //         this.direction = direction;
-        //         this.isExitCar = isExitCar;
-        //     }
-
-        //     draw(context) {
-        //         context.fillStyle = this.color;
-        //         context.fillRect(this.x, this.y, this.width, this.height);
-        //     }
-
-        //     //movimiento del auto
-        //     move(moveX, moveY) {
-        //         this.x += moveX;
-        //         this.y += moveY;
-        //     }
-
-
-
-
-        //     //choque de autos
-        //     colision(cars) {
-        //         for (let car of cars) {
-        //             if (this !== car) {
-        //                 if (
-        //                     this.x < car.x + car.width &&
-        //                     this.x + this.width > car.x &&
-        //                     this.y < car.y + car.height &&
-        //                     this.y + this.height > car.y
-        //                 ) {
-        //                     return true;
-        //                 }
-        //             }
-        //         }
-        //         return false;
-        //     }
-        // }
-
-
-        // function getRandomPosition(canvasWidth, canvasHeight, sellSize) {
-        //     const carsSize = sellSize;
-
-        //     const x = Math.floor(Math.random() * (canvasWidth - carsSize));
-        //     const y = Math.floor(Math.random() * (canvasHeight - carsSize));
-
-        //     return {
-        //         x,
-        //         y,
-        //         carsSize
-        //     };
-
-        // }
-
-
-
-        // function createRandomCars(numCars, canvasWidth, canvasHeight, sellSize) {
-        //     const cars = [];
-        //     for (let i = 0; i < numCars; i++) {
-        //         const { x, y } = getRandomPosition(canvasWidth, canvasHeight, sellSize);
-        //         const direction = Math.random() > 0.5 ? 'horizontal' : 'vertical';
-        //         const isExitCar = i === numCars - 1;
-
-        //         cars.push(new Cars(x, y, sellSize, sellSize, direction, isExitCar));
-        //     }
-        //     return cars;
-        // }
-
-        // let cars = createRandomCars(numCars, canvasWidth, canvasHeight, sellSize);
-
-        // function drawCars() {
-        //     context.clearRect(0, 0, canvasWidth, canvasHeight);
-        //     cars.forEach(car => car.draw(context));
-        // }
-
-        // drawCars();
 
 
 
