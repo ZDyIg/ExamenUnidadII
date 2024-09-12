@@ -26,17 +26,6 @@
         }
 
 
-        // const sellSize = {
-        //     x: 100,
-        //     y: 100,
-        //     width: 400,
-        //     height: 400,
-        //     exitX: 350,
-        //     exitY: 500,
-        //     exitWidth: 50,
-        //     exitHeight: 50
-
-        // };
 
         //RECTANGULOS 
         let rectangles = [];
@@ -54,16 +43,6 @@
                 speedY: 5,
             });
         }
-
-        // function drawParking() {
-        //     context.strokeStyle = "black";
-        //     context.lineWidth = 3;
-        //     context.strokeRect(sellSize.x, sellSize.y, sellSize.width, sellSize.height);
-
-        //     context.clearRect(sellSize.exitX, sellSize.exitY, sellSize.exitWidth, sellSize.exitHeight);
-        //     context.strokeStyle = "red"; // Para mostrar el borde de la salida
-        //     context.strokeRect(sellSize.exitX, sellSize.exitY, sellSize.exitWidth, sellSize.exitHeight);
-        // }
 
         function drawRectangles() {
             console.log();
@@ -84,12 +63,6 @@
                     }
             });
         }
-
-        // function drawScenery() {
-        //     context.clearRect(0, 0, canvas.width, canvas.height); // Limpiar canvas
-        //     drawParking(); // Dibuja el estacionamiento
-        //     drawRectangles(); // Dibuja los rectángulos
-        // }
 
         canvas.addEventListener('click', function (event) {
             console.log();
