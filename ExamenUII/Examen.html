@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PARKING JAM 3D</title>
+    <title>AQUARIUM JAM 2D</title>
 </head>
 
 <body>
@@ -33,7 +33,7 @@
         const imgFish = new Image();
         imgFish.src = 'fish.png';
 
-        const audio = new Audio('Sounds/punch.mp3');
+        const audio = new Audio('sounds/point.mp3');
 
         class Obstacle {
             constructor(x, y, width, height, color = 'gray') {
@@ -99,11 +99,11 @@
             move() {
                 if (this.isMoving) {
                     if (this.isHorizontal) {
-                       if (!this.isCollidingWithObstacles(this.x += this.speedX, this.y)){
+                        if (!this.isCollidingWithObstacles(this.x += this.speedX, this.y)) {
                             this.x += this.speedX;
                         }
                     } else {
-                        if(!this.isCollidingWithAnyObstacles(this.x, this.y + this.speedY)){
+                        if (!this.isCollidingWithAnyObstacles(this.x, this.y + this.speedY)) {
                             this.y += this.speedY;
                         }
                     }
@@ -113,9 +113,9 @@
             isCollidingWithAnyObstacles(newX, newY) {
                 return obstacles.some(obstacle => {
                     newX < obstacle.x + obstacle.width &&
-                    newX + this.width > obstacle.x &&
-                    newY < obstacle.y + obstacle.height &&
-                    newY + this.height > obstacle.y;
+                        newX + this.width > obstacle.x &&
+                        newY < obstacle.y + obstacle.height &&
+                        newY + this.height > obstacle.y;
                 });
             }
 
@@ -203,44 +203,76 @@
 
         function moveToExit(rect) {
             const speed = 2;
-            if (rect.x < exit.x) {
-                rect.x += speed;
-            } else if (rect.x > exit.x) {
-                rect.x -= speed;
-            }
-            if (rect.y < exit.y) {
-                rect.y += speed;
-            } else if (rect.y > exit.y) {
-                rect.y -= speed;
-            }
-            if (rect.y + rect.height > exit.y + exit.height) {
-                rect.y = exit.y + exit.height - rect.height;
-            }
-        }
 
+            // Verificamos si el rectángulo ha alcanzado la zona de salida
+            const rectInExitZone = rect.x + rect.width >= exit.x &&
+                rect.x <= exit.x + exit.width &&
+                rect.y + rect.height >= exit.y &&
+                rect.y <= exit.y + exit.height;
+
+            if (!rectInExitZone) {
+                if (rect.x < exit.x) {
+                    rect.x += speed;
+                } else if (rect.x > exit.x) {
+                    rect.x -= speed;
+                }
+                if (rect.y < exit.y) {
+                    rect.y += speed;
+                } else if (rect.y > exit.y) {
+                    rect.y -= speed;
+                }
+            } else {
+                // Eliminar el rectángulo cuando llegue completamente a la zona de salida
+                rectangles = rectangles.filter(r => r !== rect);
+                exitingRects = exitingRects.filter(r => r !== rect);
+            }
+
+
+        }
         function animate() {
             rectangles.forEach(rect => {
                 if (rect.isMoving) {
                     rect.move();
+                    // Verificamos si está fuera del estacionamiento para iniciar el movimiento hacia la salida
                     if (rect.isOutOfBounds()) {
                         rect.isMoving = false;
                         rect.isExiting = true;
                         exitingRects.push(rect);
                     }
                 }
-            });
 
-            exitingRects.forEach(rect => {
-                moveToExit(rect);
-                if (rect.x >= exit.x && rect.y >= exit.y && rect.y + rect.height <= exit.y + exit.height) {
-                    rectangles = rectangles.filter(r => r !== rect);
-                    exitingRects = exitingRects.filter(r => r !== rect);
+                rectangles.forEach(otherRect => {
+                    if (rect !== otherRect && isColliding(rect, otherRect)) {
+                        colision(rect, otherRect);
+                    }
+                });
+
+                obstacles.forEach(obstacle => {
+                    colision(rect, obstacle);
+                });
+                
+                console.log("entra");
+                // Si el rectángulo está en proceso de salida, lo movemos hacia la salida
+                if (rect.isExiting) {
+                    moveToExit(rect);
                 }
             });
-
             drawRectangles();
             requestAnimationFrame(animate);
         }
+
+
+        exitingRects.forEach(rect => {
+            moveToExit(rect);
+            if (rect.x >= exit.x && rect.y >= exit.y && rect.y + rect.height <= exit.y + exit.height) {
+                rectangles = rectangles.filter(r => r !== rect);
+                exitingRects = exitingRects.filter(r => r !== rect);
+            }
+        });
+
+        drawRectangles();
+        requestAnimationFrame(animate);
+        
 
         function isColliding(rect1, rect2) {
             return rect1.x < rect2.x + rect2.width &&
@@ -250,8 +282,7 @@
         }
 
         function colision(rect1, rect2) {
-            const collides = isColliding(rect1, rect2);
-            if (collides) {
+            if (isColliding(rect1, rect2)){
                 audio.play();
             }
         }
