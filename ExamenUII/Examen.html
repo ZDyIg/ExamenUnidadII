@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKING JAM 3D</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="800" height="800"></canvas>
+    <script type="text/javascript">
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+
+        const sellSize = {
+            x: 250,
+            y: 250,
+            width: 250,
+            height: 250
+        };
+
+        const exit = {
+            x: 750,
+            y: 350,
+            width: 70,
+            height: 30
+        };
+
+        const imgTiburoncin = new Image();
+        imgTiburoncin.src = 'shark.png';
+
+        const imgFish = new Image();
+        imgFish.src = 'fish.png';
+
+        const audio = new Audio('Sounds/punch.mp3');
+
+        class Obstacle {
+            constructor(x, y, width, height, color = 'gray') {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.color = color;
+            }
+
+            draw() {
+                context.fillStyle = this.color;
+                context.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        const obstacles = [];
+        function createObstacle() {
+            const obstacleWidth = 10;
+            const obstacleHeight = 10;
+            const side = Math.floor(Math.random() * 4);
+
+            const obstacle = new Obstacle(
+                (side === 1 || side === 3) ? (side === 1 ? sellSize.x + sellSize.width : sellSize.x - obstacleWidth) : sellSize.x,
+                (side === 0 || side === 2) ? (side === 0 ? sellSize.y - obstacleHeight : sellSize.y + sellSize.height) : sellSize.y,
+                (side === 1 || side === 3) ? obstacleWidth : sellSize.width,
+                (side === 0 || side === 2) ? obstacleHeight : sellSize.height
+            );
+
+            return obstacle;
+        }
+
+        function createObstacles() {
+            const numObstacles = Math.floor(Math.random() * 3) + 1;
+            for (let i = 0; i < numObstacles; i++) {
+                obstacles.push(createObstacle());
+            }
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obstacle => obstacle.draw());
+        }
+
+        class Rectangle {
+            constructor(x, y, width, height, img, color, speedX, speedY) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.img = img;
+                this.color = color;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.isHorizontal = Math.random() > 0.5;
+                this.isExiting = false;
+                this.isMoving = false;
+            }
+
+            draw() {
+                context.drawImage(this.img, this.x, this.y, this.width, this.height);
+            }
+
+            move() {
+                if (this.isMoving) {
+                    if (this.isHorizontal) {
+                       if (!this.isCollidingWithObstacles(this.x += this.speedX, this.y)){
+                            this.x += this.speedX;
+                        }
+                    } else {
+                        if(!this.isCollidingWithAnyObstacles(this.x, this.y + this.speedY)){
+                            this.y += this.speedY;
+                        }
+                    }
+                }
+            }
+
+            isCollidingWithAnyObstacles(newX, newY) {
+                return obstacles.some(obstacle => {
+                    newX < obstacle.x + obstacle.width &&
+                    newX + this.width > obstacle.x &&
+                    newY < obstacle.y + obstacle.height &&
+                    newY + this.height > obstacle.y;
+                });
+            }
+
+            isOutOfBounds() {
+                return (
+                    this.x + this.width > sellSize.x + sellSize.width ||
+                    this.x < sellSize.x ||
+                    this.y + this.height > sellSize.y + sellSize.height ||
+                    this.y < sellSize.y
+                );
+            }
+        }
+
+        let rectangles = [];
+        let selectRect = null;
+        let exitingRects = [];
+
+        function getRandomColor() {
+            const trans = '0.5';
+            let color = 'rgba(';
+            for (let i = 0; i < 3; i++) {
+                color += Math.floor(Math.random() * 255) + ',';
+            }
+            color += trans + ')';
+            return color;
+        }
+
+        function createRectangle() {
+            const rectWidth = 70;
+            const rectHeight = 40;
+            let rect;
+            let overlapping;
+            let attempts = 0;
+
+            do {
+                rect = new Rectangle(
+                    Math.random() * (sellSize.width - rectWidth) + sellSize.x,
+                    Math.random() * (sellSize.height - rectHeight) + sellSize.y,
+                    rectWidth,
+                    rectHeight,
+                    imgTiburoncin,
+                    getRandomColor(),
+                    0, // Velocidad inicial en X
+                    0  // Velocidad inicial en Y
+                );
+                overlapping = rectangles.some(otherRect => isColliding(rect, otherRect));
+                attempts++;
+                if (attempts > 100) break;
+            } while (overlapping);
+
+            return rect;
+        }
+
+        for (let i = 0; i < 5; i++) {
+            rectangles.push(createRectangle());
+        }
+        createObstacles();
+
+        function drawParking() {
+            context.strokeStyle = "black";
+            context.lineWidth = 3;
+            context.strokeRect(sellSize.x, sellSize.y, sellSize.width, sellSize.height);
+        }
+
+        function drawExit() {
+            context.fillStyle = 'lightblue';
+            context.fillRect(exit.x, exit.y, exit.width, exit.height);
+            context.drawImage(imgFish, exit.x, exit.y, exit.width, exit.height);
+        }
+
+        function drawRectangles() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawParking();
+            drawExit();
+            drawObstacles();
+            rectangles.forEach(rect => {
+                rect.draw();
+                if (rect === selectRect) {
+                    context.strokeStyle = 'black';
+                    context.lineWidth = 6;
+                    context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+                }
+            });
+        }
+
+        function moveToExit(rect) {
+            const speed = 2;
+            if (rect.x < exit.x) {
+                rect.x += speed;
+            } else if (rect.x > exit.x) {
+                rect.x -= speed;
+            }
+            if (rect.y < exit.y) {
+                rect.y += speed;
+            } else if (rect.y > exit.y) {
+                rect.y -= speed;
+            }
+            if (rect.y + rect.height > exit.y + exit.height) {
+                rect.y = exit.y + exit.height - rect.height;
+            }
+        }
+
+        function animate() {
+            rectangles.forEach(rect => {
+                if (rect.isMoving) {
+                    rect.move();
+                    if (rect.isOutOfBounds()) {
+                        rect.isMoving = false;
+                        rect.isExiting = true;
+                        exitingRects.push(rect);
+                    }
+                }
+            });
+
+            exitingRects.forEach(rect => {
+                moveToExit(rect);
+                if (rect.x >= exit.x && rect.y >= exit.y && rect.y + rect.height <= exit.y + exit.height) {
+                    rectangles = rectangles.filter(r => r !== rect);
+                    exitingRects = exitingRects.filter(r => r !== rect);
+                }
+            });
+
+            drawRectangles();
+            requestAnimationFrame(animate);
+        }
+
+        function isColliding(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y;
+        }
+
+        function colision(rect1, rect2) {
+            const collides = isColliding(rect1, rect2);
+            if (collides) {
+                audio.play();
+            }
+        }
+
+        function isExitZone(rect) {
+            return rect.x + rect.width >= exit.x &&
+                rect.y >= exit.y &&
+                rect.y + rect.height <= exit.y + exit.height;
+        }
+
+        canvas.addEventListener('click', function (event) {
+            const mouseX = event.offsetX;
+            const mouseY = event.offsetY;
+
+            rectangles.forEach(rect => {
+                if (mouseX >= rect.x && mouseX <= rect.x + rect.width &&
+                    mouseY >= rect.y && mouseY <= rect.y + rect.height) {
+                    selectRect = rect;
+                }
+            });
+
+            drawRectangles();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (selectRect) {
+                let originalX = selectRect.x;
+                let originalY = selectRect.y;
+                let collidedX = false;
+                let collidedY = false;
+
+                switch (event.key) {
+                    case 'ArrowUp':
+                        selectRect.y -= 5;
+                        break;
+                    case 'ArrowDown':
+                        selectRect.y += 5;
+                        break;
+                    case 'ArrowLeft':
+                        selectRect.x -= 5;
+                        break;
+                    case 'ArrowRight':
+                        selectRect.x += 5;
+                        break;
+                    case ' ':
+                        selectRect.isHorizontal = !selectRect.isHorizontal;
+                        break;
+                    default:
+                        break;
+                }
+
+                rectangles.forEach(rect => {
+                    if (rect !== selectRect) {
+                        if (isColliding(selectRect, rect)) {
+                            collidedX = selectRect.x !== originalX;
+                            collidedY = selectRect.y !== originalY;
+                        }
+                    }
+                });
+
+                obstacles.forEach(obstacle => {
+                    if (isColliding(selectRect, obstacle)) {
+                        collidedX = selectRect.x !== originalX;
+                        collidedY = selectRect.y !== originalY;
+                    }
+                });
+
+                if (collidedX) selectRect.x = originalX;
+                if (collidedY) selectRect.y = originalY;
+
+                if (selectRect.isOutOfBounds()) {
+                    selectRect.isExiting = true;
+                    exitingRects.push(selectRect);
+                    selectRect = null;
+                }
+
+                drawRectangles();
+            }
+        });
+
+        imgTiburoncin.onload = () => {
+            animate();
+            drawRectangles();
+        };
+
+        imgFish.onload = () => {
+            drawRectangles();
+        };
+
+        // Selecciona el primer rectángulo para probar
+        selectRect = rectangles[0]; // Reemplaza con el primer rectángulo de la lista
+    </script>
+
+    <style type="text/css">
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        canvas {
+            background-color: #ffffff;
+            border: 5px solid #333;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+        }
+
+        /*Estilo para el contenedor*/
+        .canvas-container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 20px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+    </style>
+
+</body>
+
+</html>
