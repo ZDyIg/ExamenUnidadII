@@ -287,7 +287,9 @@
             if (isColliding(rect1, rect2)) {
                 console.log("entra en colision");
                 if (rect1.img === imgTiburoncin && rect2.img === imgTiburoncin) {
-                    audio2.play();
+                    if (selectRect === rect1 || selectRect === rect2) {
+                        audio2.play();
+                    }
                 }
             }
         }
