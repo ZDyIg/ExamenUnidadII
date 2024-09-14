@@ -13,6 +13,10 @@
         const canvas = document.getElementById("canvas");
         const context = canvas.getContext("2d");
 
+        let pause = false;
+        var score = 0;
+
+        //Aquarium
         const sellSize = {
             x: 250,
             y: 250,
@@ -34,7 +38,15 @@
         imgFish.src = 'fish.png';
 
         const audio = new Audio('sounds/point.mp3');
-        const audio2 = new Audio('sounds/punch.mp3');
+        const audio2 = new Audio('sounds/bonk.mp3');
+        const audio3 = new Audio('sounds/music.mp3');
+
+        audio3.loop = true;
+        audio3.volume = 0.2;
+
+        window.onload = function () {
+            audio3.play();
+        };
 
         class Obstacle {
             constructor(x, y, width, height, color = 'gray') {
@@ -226,52 +238,69 @@
                 // Eliminar el rectángulo cuando llegue completamente a la zona de salida
                 rectangles = rectangles.filter(r => r !== rect);
                 exitingRects = exitingRects.filter(r => r !== rect);
-
+                score += 10;
                 audio.play();
+
             }
 
 
         }
+
         function animate() {
-            rectangles.forEach(rect => {
-                if (rect.isMoving) {
-                    rect.move();
-                    // Verificamos si está fuera del estacionamiento para iniciar el movimiento hacia la salida
-                    if (rect.isOutOfBounds()) {
-                        rect.isMoving = false;
-                        rect.isExiting = true;
-                        exitingRects.push(rect);
-                    }
-                }
+            context.clearRect(0, 0, canvas.width, canvas.height);
 
-                rectangles.forEach(otherRect => {
-                    if (rect !== otherRect && isColliding(rect, otherRect)) {
-                        colision(rect, otherRect);
+            if (!pause) {
+                rectangles.forEach(rect => {
+                    if (rect.isMoving) {
+                        rect.move();
+                        if (rect.isOutOfBounds()) {
+                            rect.isMoving = false;
+                            rect.isExiting = true;
+                            exitingRects.push(rect);
+                            score++;
+                        }
+                    }
+
+                    rectangles.forEach(otherRect => {
+                        if (rect !== otherRect && isColliding(rect, otherRect)) {
+                            colision(rect, otherRect);
+                        }
+                    });
+
+                    obstacles.forEach(obstacle => {
+                        colision(rect, obstacle);
+                    });
+
+                    if (rect.isExiting) {
+                        moveToExit(rect);
                     }
                 });
 
-                obstacles.forEach(obstacle => {
-                    colision(rect, obstacle);
-                });
+                drawRectangles();
 
-                console.log("entra");
-                // Si el rectángulo está en proceso de salida, lo movemos hacia la salida
-                if (rect.isExiting) {
-                    moveToExit(rect);
+                // Mostrar score 
+                context.fillStyle = "white";
+                context.font = "20px bakso sapi";
+                context.fillText("Score: " + score, 10, 30);
+
+            } else {
+                // Pantalla de pausa
+                context.fillStyle = "rgba(195, 195, 195, 0.5)";
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                drawPauseText();
+            }
+
+            exitingRects.forEach(rect => {
+                moveToExit(rect);
+                if (rect.x >= exit.x && rect.y >= exit.y && rect.y + rect.height <= exit.y + exit.height) {
+                    rectangles = rectangles.filter(r => r !== rect);
+                    exitingRects = exitingRects.filter(r => r !== rect);
                 }
             });
-            drawRectangles();
+
             requestAnimationFrame(animate);
         }
-
-
-        exitingRects.forEach(rect => {
-            moveToExit(rect);
-            if (rect.x >= exit.x && rect.y >= exit.y && rect.y + rect.height <= exit.y + exit.height) {
-                rectangles = rectangles.filter(r => r !== rect);
-                exitingRects = exitingRects.filter(r => r !== rect);
-            }
-        });
 
         drawRectangles();
         requestAnimationFrame(animate);
@@ -315,7 +344,17 @@
         });
 
         document.addEventListener('keydown', function (event) {
-            if (selectRect) {
+            event.preventDefault();
+            if (event.key === 'p') {
+                console.log("PAUSA");
+                pause = !pause;
+                if (!pause) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            if (selectRect !== null) {
+
                 let originalX = selectRect.x;
                 let originalY = selectRect.y;
                 let collidedX = false;
@@ -333,8 +372,10 @@
                         break;
                     case 'ArrowRight':
                         selectRect.x += 5;
+                        console.log("¿Llega2?")
                         break;
                     case ' ':
+                        console.log("¿Llega3?")
                         selectRect.isHorizontal = !selectRect.isHorizontal;
                         break;
                     default:
@@ -345,8 +386,6 @@
                     if (rect !== selectRect) {
                         if (isColliding(selectRect, rect)) {
                             colision(selectRect, rect);
-                            // collidedX = selectRect.x !== originalX;
-                            // collidedY = selectRect.y !== originalY;
                             collidedX = true;
                             collidedY = true;
                         }
@@ -356,8 +395,6 @@
                 obstacles.forEach(obstacle => {
                     if (isColliding(selectRect, obstacle)) {
                         colision(selectRect, obstacle);
-                        // collidedX = selectRect.x !== originalX;
-                        // collidedY = selectRect.y !== originalY;
                         collidedX = true;
                         collidedY = true;
                     }
@@ -373,8 +410,18 @@
                 }
 
                 drawRectangles();
-            }
+            };
         });
+
+        function drawPauseText() {
+            context.font = "30px bakso sapi";
+            context.fillStyle = "black";
+            context.fillText("PAUSADO", canvas.width / 2 - 80, canvas.height / 2);
+        }
+
+        function clearPauseText() {
+            context.clearRect(0, 0, canvas.width / 2 - 80, canvas.height / 2 - 30, 160, 40);
+        }
 
         imgTiburoncin.onload = () => {
             animate();
