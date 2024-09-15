@@ -15,6 +15,8 @@
 
         let pause = false;
         var score = 0;
+        let level = 1;
+
 
         //Aquarium
         const sellSize = {
@@ -31,11 +33,15 @@
             height: 30
         };
 
+
         const imgTiburoncin = new Image();
         imgTiburoncin.src = 'shark.png';
 
         const imgFish = new Image();
         imgFish.src = 'fish.png';
+
+        const imgCoral = new Image();
+        imgCoral.src = 'coral.png';
 
         const audio = new Audio('sounds/point.mp3');
         const audio2 = new Audio('sounds/bonk.mp3');
@@ -55,11 +61,11 @@
                 this.width = width;
                 this.height = height;
                 this.color = color;
+                this.img = imgCoral;
             }
 
             draw() {
-                context.fillStyle = this.color;
-                context.fillRect(this.x, this.y, this.width, this.height);
+                context.drawImage(this.img, this.x, this.y, this.width, this.height);
             }
         }
 
@@ -79,10 +85,30 @@
             return obstacle;
         }
 
-        function createObstacles() {
+        function createObstacleSmall() {
+            const smallWidth = 70;
+            const smallHeight = 20;
+
+            const X = Math.floor(Math.random() * (sellSize.width - smallWidth)) + sellSize.x;
+            const Y = Math.floor(Math.random() * (sellSize.height - smallHeight)) + sellSize.y;
+
+            return new Obstacle(X, Y, smallWidth, smallHeight);
+        }
+
+        function createObstacles(level) {
+            obstacles.length = 0;
             const numObstacles = Math.floor(Math.random() * 3) + 1;
             for (let i = 0; i < numObstacles; i++) {
                 obstacles.push(createObstacle());
+            }
+
+            if (level >= 2) {
+                obstacles.push(createObstacleSmall());
+            }
+
+            if (level >= 3) {
+                obstacles.push(createObstacleSmall());
+                obstacles.push(createObstacleSmall());
             }
         }
 
@@ -132,6 +158,17 @@
                 });
             }
 
+            isCollidingWithObstacles(rect, obstacle) {
+                const margin = 20;
+                return (
+                    rect.x < obstacle.x + obstacle.width + margin &&
+                    rect.x + rect.width > obstacle.x - margin &&
+                    rect.y < obstacle.y + obstacle.height + margin &&
+                    rect.y + rect.height > obstacle.y - margin
+                );
+            }
+
+
             isOutOfBounds() {
                 return (
                     this.x + this.width > sellSize.x + sellSize.width ||
@@ -174,7 +211,13 @@
                     0, // Velocidad inicial en X
                     0  // Velocidad inicial en Y
                 );
+                //colision de tiburones
                 overlapping = rectangles.some(otherRect => isColliding(rect, otherRect));
+                //colison de obstaculos
+                const isCollidingWithObstacles = obstacles.some(obstacle => isColliding(rect, obstacle));
+                //EL COCO
+                overlapping = overlapping || isCollidingWithObstacles;
+                
                 attempts++;
                 if (attempts > 100) break;
             } while (overlapping);
@@ -238,8 +281,8 @@
                 // Eliminar el rectángulo cuando llegue completamente a la zona de salida
                 rectangles = rectangles.filter(r => r !== rect);
                 exitingRects = exitingRects.filter(r => r !== rect);
-                score += 10;
                 audio.play();
+                score += 10;
 
             }
 
@@ -248,6 +291,7 @@
 
         function animate() {
             context.clearRect(0, 0, canvas.width, canvas.height);
+
 
             if (!pause) {
                 rectangles.forEach(rect => {
@@ -278,11 +322,16 @@
 
                 drawRectangles();
 
-                // Mostrar score 
-                context.fillStyle = "white";
-                context.font = "20px bakso sapi";
-                context.fillText("Score: " + score, 10, 30);
+                if (rectangles.length === 0) {
+                    level++;
+                    createObstacles(level);// Crear obstaculos dentro
+                    // rellena nuevamente
+                    for (let i = 0; i < 5; i++) {
+                        rectangles.push(createRectangle());
+                    }
 
+                    console.log("Nivel: " + level + "iniciando");
+                }
             } else {
                 // Pantalla de pausa
                 context.fillStyle = "rgba(195, 195, 195, 0.5)";
@@ -298,10 +347,14 @@
                     exitingRects = exitingRects.filter(r => r !== rect);
                 }
             });
-
+            // Mostrar score 
+            console.log(score);
+            context.fillStyle = "black";
+            context.font = "20px bakso sapi";
+            context.fillText("Score: " + score, 10, 30);
             requestAnimationFrame(animate);
         }
-
+        // Inicia la animación
         drawRectangles();
         requestAnimationFrame(animate);
 
@@ -318,10 +371,13 @@
                 if (rect1.img === imgTiburoncin && rect2.img === imgTiburoncin) {
                     if (selectRect === rect1 || selectRect === rect2) {
                         audio2.play();
+
                     }
                 }
             }
         }
+
+
 
         function isExitZone(rect) {
             return rect.x + rect.width >= exit.x &&
