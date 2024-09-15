@@ -17,6 +17,9 @@
         var score = 0;
         let level = 1;
 
+        let timer = 0;
+        let timerInterval = null;
+
 
         //Aquarium
         const sellSize = {
@@ -217,7 +220,7 @@
                 const isCollidingWithObstacles = obstacles.some(obstacle => isColliding(rect, obstacle));
                 //EL COCO
                 overlapping = overlapping || isCollidingWithObstacles;
-                
+
                 attempts++;
                 if (attempts > 100) break;
             } while (overlapping);
@@ -289,9 +292,32 @@
 
         }
 
+        function startTimer() {
+            if (!timerInterval) {
+                timerInterval = setInterval(() => {
+                    timer++;
+                }, 1000);
+            }
+
+        }
+
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null; // Reiniciar el valor del intervalo
+            timer = 0; // Reiniciar el temporizador
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
         function animate() {
             context.clearRect(0, 0, canvas.width, canvas.height);
 
+            if (timer === 0) {
+                startTimer();
+            }
 
             if (!pause) {
                 rectangles.forEach(rect => {
@@ -323,7 +349,8 @@
                 drawRectangles();
 
                 if (rectangles.length === 0) {
-                    level++;
+                    level++
+                    timer = 0;
                     createObstacles(level);// Crear obstaculos dentro
                     // rellena nuevamente
                     for (let i = 0; i < 5; i++) {
@@ -353,6 +380,18 @@
             context.font = "20px bakso sapi";
             context.fillText("Score: " + score, 10, 30);
             requestAnimationFrame(animate);
+
+
+            // Mostrar tiempo
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            const formattedSeconds = seconds < 10 ? "0" + seconds : seconds;  // Formato 00 para los segundos
+
+            context.clearRect(0, 40, 150, 30);  // Limpia la parte donde se muestra el temporizador
+            context.fillStyle = "black";
+            context.font = "20px bakso sapi";
+            context.fillText("Time: " + minutes + ":" + formattedSeconds, 10, 60);
+
         }
         // Inicia la animación
         drawRectangles();
