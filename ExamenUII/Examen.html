@@ -20,6 +20,7 @@
         let timer = 0;
         let timerInterval = null;
 
+        let gameStart = false;
 
         //Aquarium
         const sellSize = {
@@ -51,12 +52,53 @@
         const audio3 = new Audio('sounds/music.mp3');
 
         audio3.loop = true;
-        audio3.volume = 0.2;
+        audio3.volume = 0.5;
 
         window.onload = function () {
             audio3.play();
         };
 
+        function showLoadingScreen() {
+            context.fillStyle = "rgba(0, 0, 0, 0.7)";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            context.fillStyle = "gray";
+            context.font = "30px bakso sapi";
+            context.textAlign = "center";
+            context.fillText("Click to Start Game", canvas.width / 2, canvas.height / 2);
+
+            context.fillStyle = "white";
+            context.font = "20px bakso sapi";
+            context.textAlign = "center";
+            context.fillText("ARROWS TO MOVE", canvas.width / 2, (canvas.height / 2) + 40);
+
+
+
+            //los vuelvo a mostrar (score y tiempo)
+            context.fillStyle = "black";
+            context.font = "20px bakso sapi";
+            context.textAlign = "left";
+            context.fillText("Score: " + score, 10, 30);
+
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            const formattedSeconds = seconds < 10 ? "0" + seconds : seconds;
+
+            context.fillText("Time: " + minutes + ":" + formattedSeconds, 10, 60);
+        }
+
+        function hideLoadingScreen() {
+            // Elimina la pantalla de carga
+            gameStart = true;
+            drawRectangles();  // Dibuja el estado inicial del juego
+            requestAnimationFrame(animate);
+        }
+
+        canvas.addEventListener('click', function () {
+            if (!gameStart) {
+                hideLoadingScreen();
+            }
+        });
         class Obstacle {
             constructor(x, y, width, height, color = 'gray') {
                 this.x = x;
@@ -294,18 +336,21 @@
 
         function startTimer() {
             if (!timerInterval) {
+
                 timerInterval = setInterval(() => {
                     timer++;
                 }, 1000);
             }
-
         }
 
 
         function resetTimer() {
             clearInterval(timerInterval);
-            timerInterval = null; // Reiniciar el valor del intervalo
-            timer = 0; // Reiniciar el temporizador
+            // timerInterval = null; // Reiniciar el valor del intervalo
+            // timer = 0; // Reiniciar el temporizador
+            timerInterval = setInterval(() => {
+                    timer++;
+                }, 1000);
         }
 
         function stopTimer() {
@@ -313,8 +358,12 @@
         }
 
         function animate() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            if (!gameStart) {
+                showLoadingScreen();
+                return; // No iniciar la animación hasta que se haga clic
+            }
 
+            context.clearRect(0, 0, canvas.width, canvas.height);
             if (timer === 0) {
                 startTimer();
             }
@@ -365,6 +414,7 @@
                 context.fillRect(0, 0, canvas.width, canvas.height);
 
                 drawPauseText();
+                stopTimer();
             }
 
             exitingRects.forEach(rect => {
@@ -396,6 +446,7 @@
         // Inicia la animación
         drawRectangles();
         requestAnimationFrame(animate);
+        showLoadingScreen();
 
         function isColliding(rect1, rect2) {
             return rect1.x < rect2.x + rect2.width &&
@@ -444,6 +495,7 @@
                 console.log("PAUSA");
                 pause = !pause;
                 if (!pause) {
+                    resetTimer();
                     requestAnimationFrame(animate);
                 }
             };
